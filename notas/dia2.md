@@ -104,3 +104,160 @@ Maven es quien se encargará de ejecutar las pruebas de mi proyecto en el entorn
 Maven solicita al plugin SUREFIRE que ejecute las pruebas definidas con JUnit.
 El plugin surefire, además de ejecutar las pruebas, genera un fichero en:
 target/surefire-reports/TEST-<nombre del test>.xml, con el informe de las pruebas.
+
+
+---
+# Proyecto de pruebas de la librería Diccionario
+
+Quiero una librería que me permita recuperar diccionarios de distintos idiomas,
+Y a cada diccionario preguntarle si existe una determinada palabra o no, 
+Caso que exista, me de los significados
+Caso que no exista, me de un listado de alternativas a esa palabra
+
+1. Diccionario de ES
+2. Existe la palabra manzana: SI
+3. Significado de manzana: fruta del manzano
+4. Existe la palabra manana: NO
+5. Alternativas a la palabra manana: banana, mañana, manzana, manzano
+
+---
+
+Vamos a definir las pruebas
+
+
+## Prueba 1: VEr si existe un diccionario que se que existe en la librería
+
+DADO: Un idioma de un diccionario que existe en mi librería
+    String idiomaExistente="ES";
+    // Y por que se que existe... porque es mi librería y le he puesto un diccionario de ES
+CUANDO: pido a la librería el diccionario del idioma
+    SuministradorDeDiccionarios miSuministrador = SuministradorDeDiccionariosFactory.getSuministradorDeDiccionarios();
+        // Una variante de Inyección de dependencias, mediante un patrón de diseño llamado FACTORY
+    boolean respuesta = miSuministrador.tienesDiccionarioDe(idiomaExistente);
+ENTONCES: me da el diccionario
+    Assertions.assertTrue(respuesta);
+
+## Prueba 2: VEr si no existe un diccionario que se que no existe en la librería
+
+DADO: Un idioma de un diccionario que existe en mi librería
+    String idiomaExistente="RUNAS DE LOS ENANOS DEL BOSQUE";
+    // Y por que se que existe... porque es mi librería y le he puesto un diccionario de ES
+CUANDO: pido a la librería el diccionario del idioma
+    SuministradorDeDiccionarios miSuministrador = SuministradorDeDiccionariosFactory.getSuministradorDeDiccionarios();
+        // Una variante de Inyección de dependencias, mediante un patrón de diseño llamado FACTORY
+    boolean respuesta = miSuministrador.tienesDiccionarioDe(idiomaExistente);
+ENTONCES: me da el diccionario
+    Assertions.assertFalse(respuesta);
+
+
+## Prueba 3: Ver si soy capaz de recuperar un diccionario de un idioma que exista
+
+DADO: Un idioma de un diccionario que existe en mi librería
+    String idiomaExistente="ES";
+    // Y por que se que existe... porque es mi librería y le he puesto un diccionario de ES
+CUANDO: pido a la librería el diccionario del idioma
+    SuministradorDeDiccionarios miSuministrador = SuministradorDeDiccionariosFactory.getSuministradorDeDiccionarios();
+        // Una variante de Inyección de dependencias, mediante un patrón de diseño llamado FACTORY
+    Optional<Diccionario> diccionario = miSuministrador.getDiccionario(idiomaExistente);
+ENTONCES: me da el diccionario
+    Assertions.assertTrue(diccionario.isPresent());
+    Assertions.assertEquals(idiomaExistente, diccionario.get().getIdioma());
+
+## Prueba 4: Ver que pasa si pido un diccionario que no existe
+
+DADO: Un idioma de un diccionario que no existe en mi librería
+    String idiomaExistente="RUNAS DE LOS ENANOS DEL BOSQUE";
+    // Y por que se que no existe... porque es mi librería y no le he puesto un diccionario de RUNAS DE LOS ENANOS DEL BOSQUE
+CUANDO: pido a la librería el diccionario del idioma
+    SuministradorDeDiccionarios miSuministrador = SuministradorDeDiccionariosFactory.getSuministradorDeDiccionarios();
+        // Una variante de Inyección de dependencias, mediante un patrón de diseño llamado FACTORY
+    Optional<Diccionario> diccionario = miSuministrador.getDiccionario(idiomaExistente);
+ENTONCES: me no da el diccionario
+    Assertions.assertTrue(diccionario.isEmpty());
+
+## Prueba 5: Ver si en el diccionario aparece una palabra que se que existe en ese idioma
+
+DADO: Un diccionario ES
+Diccionario miDiccionario = SuministradorDeDiccionariosFactory.getSuministradorDeDiccionarios().getDiccionario("ES").get();
+Y una palabra que se que existe en ese diccionario de ES: manzana
+CUANDO: le pregunto al diccionario si existe esa palabra
+boolean respuesta = miDiccionario.existe("manzana");
+ENTONCES: Que si
+Assertions.assertTrue(respuesta);
+
+## Prueba 6: Ver si en el diccionario no aparece una palabra que se que no existe en ese idioma
+
+DADO: Un diccionario ES
+Diccionario miDiccionario = SuministradorDeDiccionariosFactory.getSuministradorDeDiccionarios().getDiccionario("ES").get();
+Y una palabra que se que no existe en ese diccionario de ES: archilococo
+CUANDO: le pregunto al diccionario si existe esa palabra
+boolean respuesta = miDiccionario.existe("archilococo");
+ENTONCES: Que no
+Assertions.assertFalse(respuesta);
+
+
+## Prueba 7: Ver si puedo recuperar los significados de una palabra que se que existe en un diccionario
+
+DADO: Un diccionario ES
+Diccionario miDiccionario = SuministradorDeDiccionariosFactory.getSuministradorDeDiccionarios().getDiccionario("ES").get();
+Y una palabra que se que existe en ese diccionario de ES: manzana
+CUANDO: le pregunto al diccionario si existe esa palabra
+Optional<List<String>> significados = miDiccionario.getSignificados("manzana");
+ENTONCES: Me dice que "Fruta del manzano"
+Assertions.assertTrue(significados.isPresent());
+Assertions.assertEquals(1, significados.get().size());
+Assertions.assertEquals("Fruta del manzano", significados.get().get(0));
+
+
+## Prueba 8: Ver si no puedo recuperar los significados de una palabra que se que no existe en un diccionario
+
+DADO: Un diccionario ES
+Diccionario miDiccionario = SuministradorDeDiccionariosFactory.getSuministradorDeDiccionarios().getDiccionario("ES").get();
+Y una palabra que se que existe en ese diccionario de ES: archilococo
+CUANDO: le pregunto al diccionario si existe esa palabra
+Optional<List<String>> significados = miDiccionario.getSignificados("archilococo");
+ENTONCES: Me dice que nasti de plasti
+Assertions.assertTrue(significados.isEmpty());
+
+// Y esto es hacer pruebas guay!
+A priori, estas pruebas son de SISTEMA. Toda prueba hecha a través de la interfaz pública (API) de mi librería es una prueba de SISTEMA.
+
+El ponerme a definir las pruebas sin tener CODIGO creado, me ayuda a DEFINIR EL API de mi librería.
+
+---
+
+```java
+public interface SuministradorDeDiccionariosFactory{
+    static SuministradorDeDiccionarios getSuministradorDeDiccionarios(){
+        return new SuministradorDeDiccionariosDesdeFicheros();
+    }
+}
+
+public interface SuministradorDeDiccionarios {
+    boolean tienesDiccionarioDe(String idioma);
+    Optional<Diccionario> getDiccionario(String idioma);
+    // Desde JAVA 1.8, está considerado una MUY MUY MUY Mala practica el que una función devuelva null!!!
+}
+
+public interface Diccionario {
+    String getIdioma();
+    boolean existe(String palabra);
+
+    Optional<List<String>> getSignificados(String palabra);
+    // El problema es que no tengo npi de como se comporta está función viendo su definición.
+    // Si le pido la palabra archilococo en un diccionario de ES, qué me devuelve?
+    // Lista vacia,... por ejemplo
+    // null,... por ejemplo
+    // Tengo una función cuya definición es AMBIGUA
+    // Para saber cómo se comporta me quedan 2 opciones:
+    // - 1. Leer la documentación de la función... en serio???? en el 2023 y seguimos leyendo documentación?????
+    // - 2. Mirar el código fuente de la función... en serio???? en el 2023 y seguimos mirando código fuente????? Y si no lo tengo?
+    // - 3. Probar a ver... metele horas... a ver como se comporta.., Ein???
+
+    // Para resolver estas ambigüedades se crea la clase Optional (Es una caja que envuelve un tipo de objeto)
+    // Java siempre me entrega la caja (el optional) que puede venir vacia o no
+    // El compromiso al que llegamos es que a partir de ahora ninguna función debe devolver null.
+}
+
+
+```

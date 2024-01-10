@@ -1,0 +1,3 @@
+Manzana=Fruta del manzano
+Perro=Animal de compañía|Persona muy perezosa
+Melón=Fruta del melonero
