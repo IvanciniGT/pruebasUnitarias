@@ -1,42 +1,62 @@
 package com.curso;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvFileSource;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
 import java.util.Optional;
 
 public class DiccionarioTest {
 
-    @Test
+    private static Diccionario miDiccionario;
+
+    @BeforeAll
+    static void inicializarDiccionario(){
+        miDiccionario = SuministradorDeDiccionariosFactory.getInstance().getDiccionario("ES").get();
+    }
+
+    @ParameterizedTest
     @DisplayName("Preguntar por una palabra existente")
-    void preguntarPorUnaPalabraExistente() {
-        Diccionario miDiccionario = SuministradorDeDiccionariosFactory.getInstance().getDiccionario("ES").get();
-        boolean respuesta = miDiccionario.existe("manzana");
+    @ValueSource(strings = {"manzana", "Manzana", "MANZANA", "melón"})
+    void preguntarPorUnaPalabraExistente(String palabra) {
+        boolean respuesta = miDiccionario.existe(palabra);
         Assertions.assertTrue(respuesta);
     }
-    @Test
+    @ParameterizedTest
     @DisplayName("Preguntar por una palabra inexistente")
-    void preguntarPorUnaPalabraInexistente() {
-        Diccionario miDiccionario = SuministradorDeDiccionariosFactory.getInstance().getDiccionario("ES").get();
-        boolean respuesta = miDiccionario.existe("manana");
+    @ValueSource(strings = {"manana", "melocotón","archilococo"})
+    void preguntarPorUnaPalabraInexistente(String palabra) {
+        boolean respuesta = miDiccionario.existe(palabra);
         Assertions.assertFalse(respuesta);
     }
 
-    @Test
+    @ParameterizedTest
     @DisplayName("Recuperar significados de una palabra existente")
-    void significadosDeUnaPalabraExistente() {
-        Diccionario miDiccionario = SuministradorDeDiccionariosFactory.getInstance().getDiccionario("ES").get();
-        Optional<List<String>> significados = miDiccionario.getDefiniciones("manzana");
+    @CsvSource({"manzana,1,Fruta del manzano","Perro,2,Animal de compañía"})
+    void significadosDeUnaPalabraExistente(String palabra, int numeroDeDefiniciones, String primeraDefinicion) {
+        Optional<List<String>> significados = miDiccionario.getDefiniciones(palabra);
         Assertions.assertTrue(significados.isPresent());
-        Assertions.assertEquals(1, significados.get().size());
-        Assertions.assertEquals("Fruta del manzano", significados.get().get(0));
+        Assertions.assertEquals(numeroDeDefiniciones, significados.get().size());
+        Assertions.assertEquals(primeraDefinicion, significados.get().get(0));
+    }
+    @ParameterizedTest
+    @DisplayName("Recuperar significados de una palabra existente (Datos en fichero externo)")
+    @CsvFileSource(resources = "/palabrasExistentes.csv", numLinesToSkip = 1)
+    void significadosDeUnaPalabraExistente2(String palabra, int numeroDeDefiniciones, String primeraDefinicion) {
+        Optional<List<String>> significados = miDiccionario.getDefiniciones(palabra);
+        Assertions.assertTrue(significados.isPresent());
+        Assertions.assertEquals(numeroDeDefiniciones, significados.get().size());
+        Assertions.assertEquals(primeraDefinicion, significados.get().get(0));
     }
     @Test
     @DisplayName("Recuperar significados de una palabra inexistente")
     void significadosDeUnaPalabraInexistente(){
-        Diccionario miDiccionario = SuministradorDeDiccionariosFactory.getInstance().getDiccionario("ES").get();
         Optional<List<String>> significados = miDiccionario.getDefiniciones("manana");
         Assertions.assertFalse(significados.isPresent());
     }
