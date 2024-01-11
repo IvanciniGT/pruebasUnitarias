@@ -45,6 +45,7 @@ public class DiccionarioTest {
         Assertions.assertEquals(numeroDeDefiniciones, significados.get().size());
         Assertions.assertEquals(primeraDefinicion, significados.get().get(0));
     }
+
     @ParameterizedTest
     @DisplayName("Recuperar significados de una palabra existente (Datos en fichero externo)")
     @CsvFileSource(resources = "/palabrasExistentes.csv", numLinesToSkip = 1)
@@ -54,6 +55,7 @@ public class DiccionarioTest {
         Assertions.assertEquals(numeroDeDefiniciones, significados.get().size());
         Assertions.assertEquals(primeraDefinicion, significados.get().get(0));
     }
+
     @Test
     @DisplayName("Recuperar significados de una palabra inexistente")
     void significadosDeUnaPalabraInexistente(){
