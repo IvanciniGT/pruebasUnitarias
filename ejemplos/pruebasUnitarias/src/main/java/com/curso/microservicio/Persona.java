@@ -26,5 +26,5 @@ public class Persona {
     @Column(updatable = false, nullable = false, unique = true)
     private String email;
 
-    private int edad;
+    private Integer edad;
 }
